@@ -68,8 +68,8 @@ class App extends React.Component {
 
   componentDidMount() {
     authenticationService.currentUser.subscribe((x) => {
-      this.setState({ currentUser: x }, this.checkDetails());
-      setInterval(this.checkDetails(), 1000 * 60 * 60 * 1);
+      this.setState({ currentUser: x }, this.checkDetails);
+      setInterval(this.checkDetails, 1000 * 60 * 60 * 1);
     });
   }
 
