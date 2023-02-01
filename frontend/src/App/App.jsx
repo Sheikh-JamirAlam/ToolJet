@@ -3,7 +3,7 @@ import React, { Suspense } from 'react';
 import config from 'config';
 import { BrowserRouter, Route, Redirect } from 'react-router-dom';
 import { history } from '@/_helpers';
-import { authenticationService, tooljetService } from '@/_services';
+import { authenticationService, tooljetService, appService } from '@/_services';
 import { PrivateRoute, AdminRoute } from '@/_components';
 import { HomePage } from '@/HomePage';
 import { LoginPage } from '@/LoginPage';
@@ -37,6 +37,24 @@ class App extends React.Component {
     };
   }
 
+  checkDetails = () => {
+    const paths = window.location.pathname?.split('/');
+    const subpath = window.public_config?.SUB_PATH;
+    const length = subpath ? paths.length - subpath.split('/').length : paths.length - 1;
+    if (length === 2 && paths[length - 1] === 'applications') {
+      // call apps api and get the app public type
+      appService.getAppBySlug(paths[length]).then((app) => {
+        if (app && !app.is_public) {
+          if (this.state.currentUser) {
+            this.fetchMetadata();
+          }
+        }
+      });
+    } else {
+      this.fetchMetadata();
+    }
+  };
+
   fetchMetadata = () => {
     if (this.state.currentUser) {
       tooljetService.fetchMetaData().then((data) => {
@@ -50,8 +68,8 @@ class App extends React.Component {
 
   componentDidMount() {
     authenticationService.currentUser.subscribe((x) => {
-      this.setState({ currentUser: x }, this.fetchMetadata);
-      setInterval(this.fetchMetadata, 1000 * 60 * 60 * 1);
+      this.setState({ currentUser: x }, this.checkDetails());
+      setInterval(this.checkDetails(), 1000 * 60 * 60 * 1);
     });
   }
 
