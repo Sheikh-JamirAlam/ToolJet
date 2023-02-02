@@ -37,12 +37,13 @@ class App extends React.Component {
     };
   }
 
-  checkDetails = () => {
-    const paths = window.location.pathname?.split('/');
+  setupMetadata = () => {
+    const paths = window.location.pathname?.split('/').filter((path) => path !== '');
     const subpath = window.public_config?.SUB_PATH;
-    const length = subpath ? paths.length - subpath.split('/').length : paths.length - 1;
-    if (length === 2 && paths[length - 1] === 'applications') {
-      // call apps api and get the app public type
+    const subpath_length = subpath ? subpath.split('/').filter((path) => path !== '').length : 0;
+
+    if (paths.length - subpath_length === 2 && paths[subpath_length] === 'applications') {
+      // call apps api and get the app type
       appService.getAppBySlug(paths[length]).then((app) => {
         if (app && !app.is_public) {
           if (this.state.currentUser) {
@@ -68,8 +69,8 @@ class App extends React.Component {
 
   componentDidMount() {
     authenticationService.currentUser.subscribe((x) => {
-      this.setState({ currentUser: x }, this.checkDetails);
-      setInterval(this.checkDetails, 1000 * 60 * 60 * 1);
+      this.setState({ currentUser: x }, this.setupMetadata);
+      setInterval(this.setupMetadata, 1000 * 60 * 60 * 1);
     });
   }
 
